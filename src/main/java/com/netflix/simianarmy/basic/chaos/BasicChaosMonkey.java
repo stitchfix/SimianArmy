@@ -285,7 +285,7 @@ public class BasicChaosMonkey extends ChaosMonkey {
 
     protected boolean getBoolFromCfgOrDefault(InstanceGroup group, String propName, boolean defaultValue) {
         String defaultProp = String.format("%s%s.%s", NS, group.type(), propName);
-        String prop = String.format("%s%s.%s.%s", NS, group.type(), group.name(), propName);
+        String prop = String.format("%s%s.%s.%s", NS, group.type(), group.name().split("-")[0], propName);
         return cfg.getBoolOrElse(prop, cfg.getBoolOrElse(defaultProp, defaultValue));
     }
 
