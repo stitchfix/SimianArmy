@@ -39,9 +39,9 @@ paths:
           schema:
             $ref: "#/definitions/ZipcodeInfoMap"
 
-
-definitions:
-  ZipcodeInfoMap:
+              
+definitions: 
+  ZipcodeInfoMap: 
     type: object
     properties:
       zipcode:
