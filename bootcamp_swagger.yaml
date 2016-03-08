@@ -1,0 +1,66 @@
+# Example YAML to get you started quickly.
+# Be aware that YAML has indentation based scoping.
+# Code completion support is available so start typing for available options.
+swagger: '2.0'
+
+# This is your document metadata
+info:
+  version: "0.0.1"
+  title: Zipcode API
+
+# Describe your paths here
+paths:
+  # This is a path endpoint. Change it.
+  /api/v0/zipcode/:
+    # This is a HTTP operation
+    get:
+      # Describe this verb here. Note: you can use markdown
+      description: |
+        Gets `ZipcodeInfoMap` objects.
+        Optional query param of **size** determines
+        size of returned array
+      # This is array of GET operation parameters:
+      parameters:
+        # An example parameter that is in query and is required
+        -
+          name: zipcode
+          in: query
+          description: Zipcode to Query
+          required: true
+          type: number
+          format: integer
+      # Expected responses for this operation:
+      responses:
+        # Response code
+        200:
+          description: Successful response
+          # A schema describing your response object.
+          # Use JSON Schema format
+          schema:
+            $ref: "#/definitions/ZipcodeInfoMap"
+
+
+definitions:
+  ZipcodeInfoMap:
+    type: object
+    properties:
+      zipcode:
+        type: integer
+      total_population:
+        type: integer
+      rural_population:
+        type: integer
+      urban_population:
+        type: integer
+      city:
+        type: string
+      state:
+        type: string
+      latitude:
+        type: number
+        format: float
+      longitude:
+        type: number
+        format: float
+      area_type:
+        type: string
