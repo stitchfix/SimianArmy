@@ -14,6 +14,27 @@ Please see the [wiki](https://github.com/Netflix/SimianArmy/wiki).
 
 [Simian Army Google group](http://groups.google.com/group/simianarmy-users).
 
+## LOCAL DEV
+
+To run tests locally,
+```
+./gradlew clean test
+```
+
+Note that if you run tests with intellij, it looks like tests may not work
+until you've run this from the command line at least once.
+
+## BUILDING AS A WAR FILE
+
+To build a war file, run
+```
+./gradlew build --info --stacktrace
+```
+You can find the resulting builds by matching the contents of
+```
+build/libs/*.war
+```
+
 ## LICENSE
 
 Copyright 2012 Netflix, Inc.

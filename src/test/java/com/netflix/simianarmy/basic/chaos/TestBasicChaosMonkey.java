@@ -363,26 +363,41 @@ public class TestBasicChaosMonkey {
         TestChaosMonkeyContext ctx = new TestChaosMonkeyContext("propertiesWithDefaults.properties");
         BasicChaosMonkey chaos = new BasicChaosMonkey(ctx);
 
-        // named 1 has actual values in config
-        InstanceGroup named1 = new BasicInstanceGroup("named1", GroupTypes.TYPE_A, "test-dev-1");
+        // if the type doesn't match anything in properties the defaults we pass in (false, 3.0, and 4.0) should win out
+        InstanceGroup differentType = new BasicInstanceGroup("different", GroupTypes.TYPE_B, "test-dev-1");
+        Assert.assertEquals(chaos.getBoolFromCfgOrDefault(differentType, "enabled", false), false);
+        Assert.assertEquals(chaos.getNumFromCfgOrDefault(differentType, "probability", 3.0), 3.0);
+        Assert.assertEquals(chaos.getNumFromCfgOrDefault(differentType, "maxTerminationsPerDay", 4.0), 4.0);
 
-        // named 2 doesn't have values but it's group has values
-        InstanceGroup named2 = new BasicInstanceGroup("named2", GroupTypes.TYPE_A, "test-dev-1");
+        // if the type matches but the prefix doesn't match anything, the defaults for that type in the
+        // config (true, 1.0, 2.0) should win out
+        InstanceGroup nomatch = new BasicInstanceGroup("nomatch", GroupTypes.TYPE_A, "test-dev-1");
+        Assert.assertEquals(chaos.getBoolFromCfgOrDefault(nomatch, "enabled", false), true);
+        Assert.assertEquals(chaos.getNumFromCfgOrDefault(nomatch, "probability", 3.0), 1.0);
+        Assert.assertEquals(chaos.getNumFromCfgOrDefault(nomatch, "maxTerminationsPerDay", 4.0), 2.0);
 
-        // named 3 doesn't have values and it's group doesn't have values
-        InstanceGroup named3 = new BasicInstanceGroup("named3", GroupTypes.TYPE_B, "test-dev-1");
+        // if the type matches and the prefix works up to "prefix0" then the "prefix0" values (false, 1.1, 2.1)
+        // should win out
+        InstanceGroup matches0_a = new BasicInstanceGroup("prefix0", GroupTypes.TYPE_A, "test-dev-1");
+        InstanceGroup matches0_b = new BasicInstanceGroup("prefix0-nomatch", GroupTypes.TYPE_A, "test-dev-1");
+        Assert.assertEquals(chaos.getBoolFromCfgOrDefault(matches0_a, "enabled", true), false);
+        Assert.assertEquals(chaos.getBoolFromCfgOrDefault(matches0_b, "enabled", true), false);
+        Assert.assertEquals(chaos.getNumFromCfgOrDefault(matches0_a, "probability", 3.0), 1.1);
+        Assert.assertEquals(chaos.getNumFromCfgOrDefault(matches0_b, "probability", 3.0), 1.1);
+        Assert.assertEquals(chaos.getNumFromCfgOrDefault(matches0_a, "maxTerminationsPerDay", 4.0), 2.1);
+        Assert.assertEquals(chaos.getNumFromCfgOrDefault(matches0_b, "maxTerminationsPerDay", 4.0), 2.1);
 
-        Assert.assertEquals(chaos.getBoolFromCfgOrDefault(named1, "enabled", true), false);
-        Assert.assertEquals(chaos.getNumFromCfgOrDefault(named1, "probability", 3.0), 1.1);
-        Assert.assertEquals(chaos.getNumFromCfgOrDefault(named1, "maxTerminationsPerDay", 4.0), 2.1);
+        // if the type matches and the prefix works up to "prefix0" then the "prefix0" values (false, 1.1, 2.1)
+        // should win out
+        InstanceGroup matches1_a = new BasicInstanceGroup("prefix0-prefix1", GroupTypes.TYPE_A, "test-dev-1");
+        InstanceGroup matches1_b = new BasicInstanceGroup("prefix0-prefix1-nomatch", GroupTypes.TYPE_A, "test-dev-1");
+        Assert.assertEquals(chaos.getBoolFromCfgOrDefault(matches1_a, "enabled", false), true);
+        Assert.assertEquals(chaos.getBoolFromCfgOrDefault(matches1_b, "enabled", false), true);
+        Assert.assertEquals(chaos.getNumFromCfgOrDefault(matches1_a, "probability", 3.0), 1.2);
+        Assert.assertEquals(chaos.getNumFromCfgOrDefault(matches1_b, "probability", 3.0), 1.2);
+        Assert.assertEquals(chaos.getNumFromCfgOrDefault(matches1_a, "maxTerminationsPerDay", 4.0), 2.2);
+        Assert.assertEquals(chaos.getNumFromCfgOrDefault(matches1_b, "maxTerminationsPerDay", 4.0), 2.2);
 
-        Assert.assertEquals(chaos.getBoolFromCfgOrDefault(named2, "enabled", true), true);
-        Assert.assertEquals(chaos.getNumFromCfgOrDefault(named2, "probability", 3.0), 1.0);
-        Assert.assertEquals(chaos.getNumFromCfgOrDefault(named2, "maxTerminationsPerDay", 4.0), 2.0);
-
-        Assert.assertEquals(chaos.getBoolFromCfgOrDefault(named3, "enabled", true), true);
-        Assert.assertEquals(chaos.getNumFromCfgOrDefault(named3, "probability", 3.0), 3.0);
-        Assert.assertEquals(chaos.getNumFromCfgOrDefault(named3, "maxTerminationsPerDay", 4.0), 4.0);
     }
 
     @Test
