@@ -277,17 +277,64 @@ public class BasicChaosMonkey extends ChaosMonkey {
         return prob;
     }
 
-    protected double getNumFromCfgOrDefault(InstanceGroup group, String propName, double defaultValue) {
+    /**
+     * For an InstanceGroup, find the longest-matching prefix in the ChaosMonkey config for a boolean
+     * property. For example, if the config includes both of these lines:
+     *   "simianarmy.chaos.ASG.flotilla.enabled = false"
+     *   "simianarmy.chaos.ASG.flotilla-prod.enabled = true"
+     * then we'll return True for the "flotilla-prod-v10" ASG. If no match is found, we return the default.
+     *
+     * @param group an InstanceGroup; in the context of our deployments this is an EC2 ASG
+     * @param propName the property, e.g. "enabled"
+     * @param defaultValue a default value
+     * @return
+     */
+    protected boolean getBoolFromCfgOrDefault(InstanceGroup group, String propName, boolean defaultValue) {
+
+        // initialize the return value and looping vars
         String defaultProp = String.format("%s%s.%s", NS, group.type(), propName);
-        String prop = String.format("%s%s.%s.%s", NS, group.type(), group.name(), propName);
-        return cfg.getNumOrElse(prop, cfg.getNumOrElse(defaultProp, defaultValue));
+        boolean returnValue = cfg.getBoolOrElse(defaultProp, defaultValue);
+        String[] splitKey = group.name().split("-");
+        String partialKey = null;
+
+        // do a forward lookup, where we match on the longest matching prefix
+        for (String keyPart : splitKey) {
+            if (partialKey == null) {
+                partialKey = keyPart;
+            } else {
+                partialKey += "-" + keyPart;
+            }
+            String lookupKey = String.format("%s%s.%s.%s", NS, group.type(), partialKey, propName);
+            returnValue = cfg.getBoolOrElse(lookupKey, returnValue);
+        }
+        return returnValue;
     }
 
-    protected boolean getBoolFromCfgOrDefault(InstanceGroup group, String propName, boolean defaultValue) {
+    /**
+     * Just like getBoolFromCfgOrDefault, but for doubles. With a pre-java8 build it was too hard to make the
+     * logic generic
+     */
+    protected double getNumFromCfgOrDefault(InstanceGroup group, String propName, double defaultValue) {
+
+        // initialize the return value and looping vars
         String defaultProp = String.format("%s%s.%s", NS, group.type(), propName);
-        String prop = String.format("%s%s.%s.%s", NS, group.type(), group.name().split("-")[0], propName);
-        return cfg.getBoolOrElse(prop, cfg.getBoolOrElse(defaultProp, defaultValue));
+        double returnValue = cfg.getNumOrElse(defaultProp, defaultValue);
+        String[] splitKey = group.name().split("-");
+        String partialKey = null;
+
+        // do a forward lookup, where we match on the longest matching prefix
+        for (String keyPart : splitKey) {
+            if (partialKey == null) {
+                partialKey = keyPart;
+            } else {
+                partialKey += "-" + keyPart;
+            }
+            String lookupKey = String.format("%s%s.%s.%s", NS, group.type(), partialKey, propName);
+            returnValue = cfg.getNumOrElse(lookupKey, returnValue);
+        }
+        return returnValue;
     }
+
 
     /**
      * Returns lastOptInTimeInMilliseconds from the .properties file.
